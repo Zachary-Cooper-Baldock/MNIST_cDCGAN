@@ -78,11 +78,11 @@ def float_to_uint8(tensor_float: torch.Tensor, assume_neg1_to1=True) -> torch.Te
     return tensor_uint8
 
 #####################################################################
-# Custom DMSE Loss (unused, but kept for reference)
+# Custom GMSE Loss (unused, but kept for reference)
 #####################################################################
-class DMSE(nn.Module):
+class GMSE(nn.Module):
     def __init__(self):
-        super(DMSE, self).__init__()
+        super(GMSE, self).__init__()
         
     def forward(self, fakes, reals, gamma, sigma):
         
@@ -116,7 +116,7 @@ class DMSE(nn.Module):
         
         return loss
 
-print("3.   Custom DMSE loss function defined.")
+print("3.   Custom GMSE loss function defined.")
 
 #####################################################################
 # Standard Losses
@@ -124,7 +124,7 @@ print("3.   Custom DMSE loss function defined.")
 BCE_loss = nn.BCELoss()
 MSE_loss = nn.MSELoss()
 SSIM_loss = kornia.losses.SSIMLoss(window_size=11, reduction='mean')
-DMSE_loss = DMSE()
+GMSE_loss = GMSE()
 
 print("4.   All loss functions defined and loaded.")
 
@@ -343,7 +343,7 @@ train_hist = {
     'G_losses_BCE': [],
     'G_losses_MSE': [],
     'G_losses_SSIM': [],
-    'G_losses_DMSE': [],
+    'G_losses_GMSE': [],
     'per_epoch_ptimes': [],
     'total_ptime': [],
     'FID': [],
@@ -356,7 +356,7 @@ test_hist = {
     'G_losses_BCE': [],
     'G_losses_MSE': [],
     'G_losses_SSIM': [],
-    'G_losses_DMSE': [],
+    'G_losses_GMSE': [],
     'per_epoch_ptimes': [],
     'total_ptime': [],
     'FID': [],
@@ -435,7 +435,7 @@ for epoch in range(train_epoch):
         target = x_
         G_MSE_loss  = MSE_loss(G_fake, target)
         G_SSIM_loss = SSIM_loss(G_fake, target)
-        G_DMSE_loss = DMSE_loss(G_fake, target, gamma=1.0, sigma=2.0)
+        G_GMSE_loss = GMSE_loss(G_fake, target, gamma=1.0, sigma=2.0)
         
         # PSNR
         psnr_value = peak_signal_noise_ratio(G_fake, x_, data_range=2.0)
@@ -462,7 +462,7 @@ for epoch in range(train_epoch):
         train_hist['G_losses_BCE'].append(G_BCE_loss.item())
         train_hist['G_losses_MSE'].append(G_MSE_loss.item())
         train_hist['G_losses_SSIM'].append(G_SSIM_loss.item())
-        train_hist['G_losses_DMSE'].append(G_DMSE_loss.item())
+        train_hist['G_losses_GMSE'].append(G_GMSE_loss.item())
         train_hist['PSNR'].append(psnr_value.item())
 
     ########################################################################
@@ -492,7 +492,7 @@ for epoch in range(train_epoch):
             G_test_BCE_loss  = BCE_loss(D_fake, y_real_)
             G_test_MSE_loss  = MSE_loss(G_fake, x_)
             G_test_SSIM_loss = SSIM_loss(G_fake, x_)
-            G_test_DMSE_loss = DMSE_loss(G_fake, x_, 1.0, 2.0)
+            G_test_GMSE_loss = GMSE_loss(G_fake, x_, 1.0, 2.0)
             
             G_test_loss = G_test_BCE_loss + lambda_term * G_test_MSE_loss # not using MSE or SSIM in combined test loss here
             
@@ -502,7 +502,7 @@ for epoch in range(train_epoch):
             test_hist['G_losses_BCE'].append(G_test_BCE_loss.item())
             test_hist['G_losses_MSE'].append(G_test_MSE_loss.item())
             test_hist['G_losses_SSIM'].append(G_test_SSIM_loss.item())
-            test_hist['G_losses_DMSE'].append(G_test_DMSE_loss.item())
+            test_hist['G_losses_GMSE'].append(G_test_GMSE_loss.item())
             
             # If desired, you could also compute test-time PSNR, FID, etc.
             # test_psnr = peak_signal_noise_ratio(G_fake, x_, data_range=2.0)
